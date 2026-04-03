@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Shop - BuyReal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-shop"></i> Create Your Shop</h4>
+                </div>
+                <div class="card-body">
+                    {% if not categories_exist %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            No shop categories are available. Please contact the administrator.
+                        </div>
+                    {% endif %}
+                    
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Display form errors -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <h5 class="mb-3 text-primary"><i class="bi bi-info-circle"></i> Basic Information</h5>
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label">Shop Name <span class="text-danger">*</span></label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                    <div class="text-danger small">{{ form.name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Category <span class="text-danger">*</span></label>
+                                {{ form.category }}
+                                {% if form.category.errors %}
+                                    <div class="text-danger small">{{ form.category.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Description <span class="text-danger">*</span></label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small">{{ form.description.errors.0 }}</div>
+                            {% endif %}
+                            <small class="text-muted">Describe your shop, what you sell, etc.</small>
+                        </div>
+                        
+                        <hr class="my-4">
+                        <h5 class="mb-3 text-primary"><i class="bi bi-telephone"></i> Contact Information</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email <span class="text-danger">*</span></label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone <span class="text-danger">*</span></label>
+                                {{ form.phone }}
+                                {% if form.phone.errors %}
+                                    <div class="text-danger small">{{ form.phone.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        <h5 class="mb-3 text-primary"><i class="bi bi-geo-alt"></i> Location</h5>
+                        <div class="mb-3">
+                            <label class="form-label">Address <span class="text-danger">*</span></label>
+                            {{ form.address }}
+                            {% if form.address.errors %}
+                                <div class="text-danger small">{{ form.address.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">City <span class="text-danger">*</span></label>
+                                {{ form.city }}
+                                {% if form.city.errors %}
+                                    <div class="text-danger small">{{ form.city.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">State <span class="text-danger">*</span></label>
+                                {{ form.state }}
+                                {% if form.state.errors %}
+                                    <div class="text-danger small">{{ form.state.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Pincode <span class="text-danger">*</span></label>
+                                {{ form.pincode }}
+                                {% if form.pincode.errors %}
+                                    <div class="text-danger small">{{ form.pincode.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-5 mb-3">
+                                <label class="form-label">Latitude</label>
+                                {{ form.latitude }}
+                                {% if form.latitude.errors %}
+                                    <div class="text-danger small">{{ form.latitude.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-5 mb-3">
+                                <label class="form-label">Longitude</label>
+                                {{ form.longitude }}
+                                {% if form.longitude.errors %}
+                                    <div class="text-danger small">{{ form.longitude.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="button" id="getLocationBtn" class="btn btn-outline-secondary w-100">
+                                    <i class="bi bi-geo-alt"></i> Get
+                                </button>
+                            </div>
+                        </div>
+                        <small class="text-muted d-block mb-3">
+                            <i class="bi bi-info-circle"></i> Click "Get" to auto-detect your location, or enter coordinates manually.
+                        </small>
+                        
+                        <hr class="my-4">
+                        <h5 class="mb-3 text-primary"><i class="bi bi-truck"></i> Delivery Settings</h5>
+                        <div class="row align-items-center">
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check">
+                                    {{ form.offers_delivery }}
+                                    <label class="form-check-label" for="{{ form.offers_delivery.id_for_label }}">
+                                        Offer Delivery
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Delivery Radius (km)</label>
+                                {{ form.delivery_radius }}
+                                {% if form.delivery_radius.errors %}
+                                    <div class="text-danger small">{{ form.delivery_radius.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Minimum Order (₹)</label>
+                                {{ form.minimum_order }}
+                                {% if form.minimum_order.errors %}
+                                    <div class="text-danger small">{{ form.minimum_order.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        <h5 class="mb-3 text-primary"><i class="bi bi-file-earmark"></i> Additional Details</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">GST Number (Optional)</label>
+                                {{ form.gst_number }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Shop Image</label>
+                                {{ form.image }}
+                                <div id="imagePreview" class="mt-2"></div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-lg"></i> Create Shop
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Get Location Button
+    document.getElementById('getLocationBtn').addEventListener('click', function() {
+        if (navigator.geolocation) {
+            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            this.disabled = true;
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    document.getElementById('id_latitude').value = position.coords.latitude.toFixed(6);
+                    document.getElementById('id_longitude').value = position.coords.longitude.toFixed(6);
+                    
+                    var btn = document.getElementById('getLocationBtn');
+                    btn.innerHTML = '<i class="bi bi-check"></i> Done';
+                    btn.disabled = false;
+                    btn.classList.remove('btn-outline-secondary');
+                    btn.classList.add('btn-success');
+                    
+                    setTimeout(function() {
+                        btn.innerHTML = '<i class="bi bi-geo-alt"></i> Get';
+                        btn.classList.remove('btn-success');
+                        btn.classList.add('btn-outline-secondary');
+                    }, 2000);
+                },
+                function(error) {
+                    var btn = document.getElementById('getLocationBtn');
+                    btn.innerHTML = '<i class="bi bi-geo-alt"></i> Get';
+                    btn.disabled = false;
+                    alert('Unable to get your location. Please enter manually.\nError: ' + error.message);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        } else {
+            alert('Geolocation is not supported by your browser.');
+        }
+    });
+    
+    // Image Preview
+    document.getElementById('{{ form.image.id_for_label }}').addEventListener('change', function(e) {
+        var file = e.target.files[0];
+        var preview = document.getElementById('imagePreview');
+        
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-height: 150px;">';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            preview.innerHTML = '';
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block title %}Retailer Dashboard - BuyReal{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-speedometer2"></i> Retailer Dashboard</h2>
+        <div>
+            <span class="badge bg-{{ shop.status }}">
+                <span class="shop-status {{ shop.status }}"></span>
+                {{ shop.get_status_display }}
+            </span>
+        </div>
+    </div>
+    
+    {% if shop.status == 'pending' %}
+        <div class="alert alert-warning">
+            <i class="bi bi-clock"></i> Your shop is pending approval. You'll be able to add products once approved.
+        </div>
+    {% elif shop.status == 'rejected' %}
+        <div class="alert alert-danger">
+            <i class="bi bi-x-circle"></i> Your shop was rejected. Reason: {{ shop.rejection_reason }}
+            <br><a href="{% url 'shops:my_shop' %}">Update your shop details and resubmit</a>
+        </div>
+    {% endif %}
+    
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card dashboard-card bg-primary text-white h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon bg-white bg-opacity-25 me-3">
+                        <i class="bi bi-box"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0">{{ total_products }}</h3>
+                        <small>Total Products</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card dashboard-card bg-success text-white h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon bg-white bg-opacity-25 me-3">
+                        <i class="bi bi-bag"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0">{{ total_orders }}</h3>
+                        <small>Total Orders</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card dashboard-card bg-warning text-dark h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon bg-white bg-opacity-25 me-3">
+                        <i class="bi bi-clock"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0">{{ pending_orders }}</h3>
+                        <small>Pending Orders</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card dashboard-card bg-info text-white h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon bg-white bg-opacity-25 me-3">
+                        <i class="bi bi-currency-rupee"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0">₹{{ total_revenue }}</h3>
+                        <small>Total Revenue</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% if shop.status == 'approved' %}
+                            <a href="{% url 'products:add_product' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Add Product
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'products:my_products' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-box"></i> Manage Products
+                        </a>
+                        <a href="{% url 'orders:retailer_orders' %}" class="btn btn-outline-success">
+                            <i class="bi bi-bag"></i> View Orders
+                        </a>
+                        <a href="{% url 'shops:my_shop' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-shop"></i> Edit Shop
+                        </a>
+                        <a href="{% url 'chat:conversations' %}" class="btn btn-outline-info">
+                            <i class="bi bi-chat"></i> Messages
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <!-- Recent Orders -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-bag"></i> Recent Orders</h5>
+                    <a href="{% url 'orders:retailer_orders' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Customer</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in recent_orders %}
+                                    <tr>
+                                        <td>{{ order.order_number }}</td>
+                                        <td>{{ order.customer.get_full_name }}</td>
+                                        <td>₹{{ order.total }}</td>
+                                        <td>
+                                            <span class="badge status-{{ order.status }}">
+                                                {{ order.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ order.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">No orders yet</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Low Stock Alert -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-triangle text-warning"></i> Low Stock Alert</h5>
+                </div>
+                <div class="card-body">
+                    {% if low_stock_products %}
+                        <ul class="list-group list-group-flush">
+                            {% for product in low_stock_products %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ product.name }}</strong>
+                                        <br><small class="text-muted">Stock: {{ product.stock }}</small>
+                                    </div>
+                                    <a href="{% url 'products:edit_product' product.id %}" class="btn btn-sm btn-outline-warning">
+                                        Update
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted text-center mb-0">All products have sufficient stock</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
+
+# Follow the prompts:
+# Username: admin
+# Email: admin@buyreal.com
+# Password: (enter password)
+# Password (again): (confirm password)
+# Load shop and product categories
+python manage.py setup_initial_data
+
+# (Optional) Create test data for development
+python manage.py create_test_data
+# Load shop and product categories
+python manage.py setup_initial_data
+
+# (Optional) Create test data for development
+python manage.py create_test_data

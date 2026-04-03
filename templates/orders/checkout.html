@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout - BuyReal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4"><i class="bi bi-bag-check"></i> Checkout</h2>
+    
+    <div class="row">
+        <!-- Checkout Form -->
+        <div class="col-lg-8">
+            <form method="post">
+                {% csrf_token %}
+                
+                <!-- Delivery Address -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="bi bi-geo-alt"></i> Delivery Address</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Address *</label>
+                            {{ form.delivery_address }}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">City *</label>
+                                {{ form.delivery_city }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">State *</label>
+                                {{ form.delivery_state }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Pincode *</label>
+                                {{ form.delivery_pincode }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone *</label>
+                            {{ form.delivery_phone }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Delivery Type -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="bi bi-truck"></i> Delivery Type</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="delivery_type" 
+                                           id="delivery_retailer" value="retailer" checked>
+                                    <label class="form-check-label" for="delivery_retailer">
+                                        <strong>Retailer Delivery</strong>
+                                        <br><small class="text-muted">Shop will deliver</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="delivery_type" 
+                                           id="delivery_partner" value="partner">
+                                    <label class="form-check-label" for="delivery_partner">
+                                        <strong>Delivery Partner</strong>
+                                        <br><small class="text-muted">Third-party delivery</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="delivery_type" 
+                                           id="delivery_pickup" value="pickup">
+                                    <label class="form-check-label" for="delivery_pickup">
+                                        <strong>Self Pickup</strong>
+                                        <br><small class="text-muted">Pick from store</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Payment Method -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="bi bi-credit-card"></i> Payment Method</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="payment_method" 
+                                   id="payment_cod" value="cod" checked>
+                            <label class="form-check-label" for="payment_cod">
+                                <i class="bi bi-cash-coin text-success"></i>
+                                <strong>Cash on Delivery</strong>
+                                <br><small class="text-muted">Pay when you receive your order</small>
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="payment_method" 
+                                   id="payment_upi" value="upi">
+                            <label class="form-check-label" for="payment_upi">
+                                <i class="bi bi-phone text-primary"></i>
+                                <strong>UPI Payment</strong>
+                                <br><small class="text-muted">Pay using UPI (Google Pay, PhonePe, etc.)</small>
+                            </label>
+                        </div>
+                        
+                        <div id="upiSection" style="display: none;" class="mt-3 ps-4">
+                            <label class="form-label">UPI ID</label>
+                            {{ form.upi_id }}
+                            <small class="text-muted">Example: yourname@paytm, phone@gpay</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Customer Note -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="bi bi-chat-text"></i> Order Notes</h5>
+                    </div>
+                    <div class="card-body">
+                        {{ form.customer_note }}
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg w-100">
+                    <i class="bi bi-check-circle"></i> Place Order
+                </button>
+            </form>
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm sticky-top" style="top: 80px;">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-receipt"></i> Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-2">
+                        <i class="bi bi-shop"></i> {{ shop.name }}
+                    </p>
+                    
+                    <hr>
+                    
+                    {% for item in cart_items %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <div>
+                                <span>{{ item.product.name }}</span>
+                                <br><small class="text-muted">x{{ item.quantity }}</small>
+                            </div>
+                            <strong>₹{{ item.total_price }}</strong>
+                        </div>
+                    {% endfor %}
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal</span>
+                        <span>₹{{ subtotal }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Delivery Charge</span>
+                        <span>{% if delivery_charge > 0 %}₹{{ delivery_charge }}{% else %}<span class="text-success">FREE</span>{% endif %}</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between">
+                        <strong class="fs-5">Total</strong>
+                        <strong class="fs-5 text-primary">₹{{ total }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Toggle UPI section
+    document.querySelectorAll('input[name="payment_method"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            document.getElementById('upiSection').style.display = 
+                this.value === 'upi' ? 'block' : 'none';
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Messages - BuyReal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4"><i class="bi bi-chat-dots"></i> Messages</h2>
+    
+    {% if conversations %}
+        <div class="row">
+            {% for convo in conversations %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    {% if user.role == 'customer' %}
+                                        <h5 class="mb-1">
+                                            <i class="bi bi-shop"></i> {{ convo.shop.name }}
+                                        </h5>
+                                        <small class="text-muted">{{ convo.shop.city }}</small>
+                                    {% else %}
+                                        <h5 class="mb-1">
+                                            <i class="bi bi-person"></i> 
+                                            {{ convo.customer.get_full_name|default:convo.customer.username }}
+                                        </h5>
+                                        <small class="text-muted">{{ convo.customer.email }}</small>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if user.role == 'customer' and convo.customer_unread > 0 %}
+                                    <span class="badge bg-danger rounded-pill">{{ convo.customer_unread }}</span>
+                                {% elif user.role == 'retailer' and convo.retailer_unread > 0 %}
+                                    <span class="badge bg-danger rounded-pill">{{ convo.retailer_unread }}</span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if convo.last_message %}
+                                <p class="text-muted small mb-3">
+                                    <strong>{{ convo.last_message.sender.username }}:</strong>
+                                    {{ convo.last_message.content|truncatewords:10 }}
+                                </p>
+                                <small class="text-muted">
+                                    <i class="bi bi-clock"></i> {{ convo.last_message.created_at|timesince }} ago
+                                </small>
+                            {% else %}
+                                <p class="text-muted small mb-3">No messages yet</p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-white">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'chat:chat_room' convo.id %}" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-chat"></i> Open Chat
+                                </a>
+                                <a href="{% url 'chat:delete_conversation' convo.id %}" 
+                                   class="btn btn-outline-danger btn-sm"
+                                   onclick="return confirm('Delete this conversation?');">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-chat-dots text-muted" style="font-size: 4rem;"></i>
+                <h4 class="mt-3">No conversations yet</h4>
+                {% if user.role == 'customer' %}
+                    <p class="text-muted">Start chatting with shops by visiting their pages.</p>
+                    <a href="{% url 'shops:shop_list' %}" class="btn btn-primary">
+                        <i class="bi bi-shop"></i> Browse Shops
+                    </a>
+                {% else %}
+                    <p class="text-muted">Customers will be able to message you through your shop page.</p>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

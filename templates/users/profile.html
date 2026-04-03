@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - BuyReal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body text-center">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="Profile" class="avatar mb-3">
+                    {% else %}
+                        <div class="avatar bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 100px; height: 100px; border-radius: 50%; font-size: 2rem;">
+                            {{ user.first_name.0 }}{{ user.last_name.0 }}
+                        </div>
+                    {% endif %}
+                    <h5>{{ user.get_full_name }}</h5>
+                    <p class="text-muted">{{ user.email }}</p>
+                    <span class="badge bg-{{ user.role|default:'secondary' }}">
+                        {{ user.get_role_display }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="list-group shadow-sm">
+                <a href="{% url 'users:profile' %}" class="list-group-item list-group-item-action active">
+                    <i class="bi bi-person"></i> Profile
+                </a>
+                <a href="{% url 'users:change_password' %}" class="list-group-item list-group-item-action">
+                    <i class="bi bi-key"></i> Change Password
+                </a>
+                {% if user.role == 'customer' %}
+                    <a href="{% url 'orders:order_history' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-bag"></i> My Orders
+                    </a>
+                {% endif %}
+                {% if user.role == 'retailer' %}
+                    <a href="{% url 'shops:my_shop' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-shop"></i> My Shop
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0"><i class="bi bi-person"></i> Edit Profile</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">First Name</label>
+                                {{ form.first_name }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Last Name</label>
+                                {{ form.last_name }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                {{ form.email }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone</label>
+                                {{ form.phone }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Address</label>
+                            {{ form.address }}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">City</label>
+                                {{ form.city }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">State</label>
+                                {{ form.state }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Pincode</label>
+                                {{ form.pincode }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-5 mb-3">
+                                <label class="form-label">Latitude</label>
+                                {{ form.latitude }}
+                            </div>
+                            <div class="col-md-5 mb-3">
+                                <label class="form-label">Longitude</label>
+                                {{ form.longitude }}
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="button" id="getLocationBtn" class="btn btn-outline-secondary w-100">
+                                    <i class="bi bi-geo-alt"></i> Get
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Profile Picture</label>
+                            {{ form.profile_picture }}
+                            <div id="imagePreview" class="mt-2">
+                                {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" class="img-fluid rounded" style="max-height: 200px;">
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> Update Profile
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

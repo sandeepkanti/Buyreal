@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} - BuyReal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'shops:shop_detail' product.shop.id %}">{{ product.shop.name }}</a></li>
+            <li class="breadcrumb-item active">{{ product.name }}</li>
+        </ol>
+    </nav>
+    
+    <div class="row">
+        <!-- Product Image -->
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 400px;">
+                        <i class="bi bi-image text-muted" style="font-size: 5rem;"></i>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Product Details -->
+        <div class="col-md-7">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h2 class="card-title">{{ product.name }}</h2>
+                    
+                    <p class="text-muted mb-3">
+                        <a href="{% url 'shops:shop_detail' product.shop.id %}" class="text-decoration-none">
+                            <i class="bi bi-shop"></i> {{ product.shop.name }}
+                        </a>
+                        {% if product.category %}
+                            <span class="ms-3"><i class="bi bi-tag"></i> {{ product.category.name }}</span>
+                        {% endif %}
+                    </p>
+                    
+                    <!-- Price -->
+                    <div class="mb-3">
+                        <span class="price fs-3">₹{{ product.price }}</span>
+                        {% if product.compare_price %}
+                            <span class="original-price fs-5 ms-2">₹{{ product.compare_price }}</span>
+                            <span class="badge bg-danger ms-2">{{ product.discount_percentage }}% OFF</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Stock Status -->
+                    <div class="mb-3">
+                        {% if product.in_stock %}
+                            <span class="badge bg-success fs-6">
+                                <i class="bi bi-check-circle"></i> In Stock ({{ product.stock }} available)
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger fs-6">
+                                <i class="bi bi-x-circle"></i> Out of Stock
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <h5>Description</h5>
+                        <p class="text-muted">{{ product.description }}</p>
+                    </div>
+                    
+                    <!-- Product Details -->
+                    {% if product.sku or product.weight %}
+                        <div class="mb-4">
+                            <h5>Details</h5>
+                            <table class="table table-sm">
+                                {% if product.sku %}
+                                    <tr>
+                                        <td>SKU:</td>
+                                        <td>{{ product.sku }}</td>
+                                    </tr>
+                                {% endif %}
+                                {% if product.weight %}
+                                    <tr>
+                                        <td>Weight:</td>
+                                        <td>{{ product.weight }}g</td>
+                                    </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Add to Cart Form -->
+                    {% if product.in_stock and user.is_authenticated and user.role == 'customer' %}
+                        <form action="{% url 'orders:add_to_cart' product.id %}" method="post" class="mb-3">
+                            {% csrf_token %}
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <label class="form-label">Quantity:</label>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="input-group" style="width: 140px;">
+                                        <button type="button" class="btn btn-outline-secondary quantity-btn btn-minus">-</button>
+                                        <input type="number" name="quantity" class="form-control text-center quantity-input" value="1" min="1" max="{{ product.stock }}">
+                                        <button type="button" class="btn btn-outline-secondary quantity-btn btn-plus">+</button>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="bi bi-cart-plus"></i> Add to Cart
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    {% elif not user.is_authenticated %}
+                        <div class="alert alert-info">
+                            <a href="{% url 'login' %}">Login</a> to add this product to your cart.
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Shop Info -->
+                    <div class="card bg-light mt-4">
+                        <div class="card-body">
+                            <h6><i class="bi bi-shop"></i> Sold by: {{ product.shop.name }}</h6>
+                            <p class="text-muted mb-2">{{ product.shop.city }}, {{ product.shop.state }}</p>
+                            <div class="d-flex gap-2">
+                                <a href="{% url 'shops:shop_detail' product.shop.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> View Shop
+                                </a>
+                                {% if user.is_authenticated and user.role == 'customer' %}
+                                    <a href="{% url 'chat:start_chat' product.shop.id %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-chat"></i> Chat with Seller
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    {% if related_products %}
+        <div class="mt-5">
+            <h4 class="mb-4">More from {{ product.shop.name }}</h4>
+            <div class="row g-4">
+                {% for p in related_products %}
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card product-card h-100 shadow-sm">
+                            <div class="position-relative">
+                                {% if p.image %}
+                                    <img src="{{ p.image.url }}" class="card-img-top" alt="{{ p.name }}">
+                                {% else %}
+                                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                        <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <h6 class="card-title">{{ p.name }}</h6>
+                                <p class="price">₹{{ p.price }}</p>
+                            </div>
+                            <div class="card-footer bg-white">
+                                <a href="{% url 'products:product_detail' p.id %}" class="btn btn-outline-primary btn-sm w-100">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+    <!-- AI Recommendations Section -->
+<div class="mt-5">
+    <h4 class="mb-4">
+        <i class="bi bi-stars"></i> You May Also Like
+        <span class="badge bg-primary">AI Powered</span>
+    </h4>
+    <div id="aiRecommendations" class="row g-4">
+        <div class="col-12 text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    // Load AI recommendations
+    fetch(`/ai/recommendations/{{ product.id }}/?type=similar&limit=4`)
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('aiRecommendations');
+            container.innerHTML = '';
+            
+            if (data.recommendations && data.recommendations.length > 0) {
+                data.recommendations.forEach(product => {
+                    const productCard = `
+                        <div class="col-md-6 col-lg-3">
+                            <div class="card product-card h-100 shadow-sm">
+                                ${product.image_url ? 
+                                    `<img src="${product.image_url}" class="card-img-top" alt="${product.name}">` :
+                                    `<div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                        <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                                    </div>`
+                                }
+                                <div class="card-body">
+                                    <h6 class="card-title">${product.name}</h6>
+                                    <p class="price">₹${product.price}</p>
+                                    <p class="text-muted small">${product.shop_name}</p>
+                                </div>
+                                <div class="card-footer bg-white">
+                                    <a href="/products/${product.id}/" class="btn btn-outline-primary btn-sm w-100">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += productCard;
+                });
+            } else {
+                container.innerHTML = '<div class="col-12 text-center text-muted">No recommendations available</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading recommendations:', error);
+            document.getElementById('aiRecommendations').innerHTML = 
+                '<div class="col-12 text-center text-muted">Unable to load recommendations</div>';
+        });
+</script>
+{% endblock %}
+</div>
+{% endblock %}

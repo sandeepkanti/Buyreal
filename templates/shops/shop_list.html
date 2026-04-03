@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Browse Shops - BuyReal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4"><i class="bi bi-shop-window"></i> Browse Shops</h2>
+    
+    <!-- Search & Filter Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">City</label>
+                    <input type="text" name="city" class="form-control" placeholder="Enter city..." value="{{ city_filter }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Category</label>
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if category_filter == cat.id|stringformat:"s" %}selected{% endif %}>
+                                {{ cat.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Radius (km)</label>
+                    <input type="number" name="radius" class="form-control" placeholder="10" value="{{ request.GET.radius }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="button" id="getLocationBtn" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-geo-alt"></i> My Location
+                    </button>
+                    <input type="hidden" name="latitude" id="id_latitude" value="{{ user_lat }}">
+                    <input type="hidden" name="longitude" id="id_longitude" value="{{ user_lng }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Location Info -->
+    {% if user_lat and user_lng %}
+        <div class="alert alert-info mb-4">
+            <i class="bi bi-geo-alt-fill"></i> Showing shops near your location. 
+            <a href="{% url 'shops:shop_list' %}" class="alert-link">Clear location filter</a>
+        </div>
+    {% endif %}
+    
+    <!-- Shop Grid -->
+    <div class="row g-4">
+        {% for shop in shops %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card shop-card h-100 shadow-sm">
+                    {% if shop.image %}
+                        <img src="{{ shop.image.url }}" class="card-img-top shop-image" alt="{{ shop.name }}">
+                    {% else %}
+                        <div class="card-img-top shop-image bg-light d-flex align-items-center justify-content-center">
+                            <i class="bi bi-shop text-muted" style="font-size: 4rem;"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">{{ shop.name }}</h5>
+                            {% if shop.distance %}
+                                <span class="distance-badge">
+                                    <i class="bi bi-geo-alt"></i> {{ shop.distance }} km
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <p class="text-muted mb-2">
+                            <small>
+                                <i class="bi bi-tag"></i> {{ shop.category.name|default:"General" }}
+                            </small>
+                        </p>
+                        
+                        <p class="card-text text-muted small">
+                            {{ shop.description|truncatewords:20 }}
+                        </p>
+                        
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-geo-alt text-primary me-2"></i>
+                            <small class="text-muted">{{ shop.city }}, {{ shop.state }}</small>
+                        </div>
+                        
+                        {% if shop.rating > 0 %}
+                            <div class="rating mb-2">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= shop.rating %}
+                                        <i class="bi bi-star-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <small class="text-muted">({{ shop.total_reviews }})</small>
+                            </div>
+                        {% endif %}
+                        
+                        {% if shop.offers_delivery %}
+                            <span class="badge bg-success mb-2">
+                                <i class="bi bi-truck"></i> Delivery Available
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-footer bg-white">
+                        <a href="{% url 'shops:shop_detail' shop.id %}" class="btn btn-primary w-100">
+                            <i class="bi bi-eye"></i> View Shop
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <i class="bi bi-shop"></i>
+                    <h4>No shops found</h4>
+                    <p class="text-muted">Try adjusting your search filters or location.</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,284 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top">
+    <div class="container">
+        <!-- Brand Logo -->
+        <a class="navbar-brand fw-bold" href="{% url 'home' %}">
+            <i class="bi bi-shop"></i> BuyReal
+        </a>
+        
+        <!-- Mobile Toggle Button -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <!-- Navigation Links -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'home' %}">
+                        <i class="bi bi-house"></i> Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'shops:shop_list' %}">
+                        <i class="bi bi-shop-window"></i> Shops
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'products:product_list' %}">
+                        <i class="bi bi-box"></i> Products
+                    </a>
+                </li>
+                {% if user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'ai_services:chatbot_page' %}">
+                        <i class="bi bi-robot"></i> AI Assistant
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+            
+            <!-- Search Form -->
+            <form class="d-flex me-3 position-relative" action="{% url 'products:product_list' %}" method="GET" id="searchForm">
+                <div class="input-group">
+                    <input class="form-control" type="search" name="search" id="searchInput" placeholder="Search products..." aria-label="Search" value="{{ request.GET.search }}" autocomplete="off">
+                    <button class="btn btn-light" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+                <!-- Search Suggestions -->
+                <div id="searchSuggestions" class="position-absolute w-100 bg-white shadow rounded mt-1" style="top: 100%; left: 0; z-index: 1050; display: none; max-height: 300px; overflow-y: auto;">
+                </div>
+            </form>
+            
+            <!-- User Menu -->
+            <ul class="navbar-nav">
+                {% if user.is_authenticated %}
+                    <!-- Cart Icon (for customers) -->
+                    {% if user.role == 'customer' %}
+                        <li class="nav-item">
+                            <a class="nav-link position-relative" href="{% url 'orders:cart' %}">
+                                <i class="bi bi-cart3 fs-5"></i>
+                                {% if cart_count and cart_count > 0 %}
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                                        {{ cart_count }}
+                                    </span>
+                                {% endif %}
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    <!-- User Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle me-1"></i> 
+                            <span class="d-none d-md-inline">{{ user.first_name|default:user.username }}</span>
+                            {% if user.role == 'retailer' %}
+                                <span class="badge bg-warning text-dark ms-1 d-none d-md-inline">Retailer</span>
+                            {% elif user.is_superuser %}
+                                <span class="badge bg-danger ms-1 d-none d-md-inline">Admin</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
+                            <!-- Profile Header -->
+                            <li class="dropdown-header">
+                                <strong>{{ user.get_full_name|default:user.username }}</strong>
+                                <br>
+                                <small class="text-muted">{{ user.email }}</small>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            
+                            <!-- Common Links -->
+                            <li>
+                                <a class="dropdown-item" href="{% url 'users:profile' %}">
+                                    <i class="bi bi-person me-2"></i> My Profile
+                                </a>
+                            </li>
+                            
+                            <!-- Customer Links -->
+                            {% if user.role == 'customer' %}
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'orders:order_history' %}">
+                                        <i class="bi bi-bag me-2"></i> My Orders
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'orders:cart' %}">
+                                        <i class="bi bi-cart me-2"></i> My Cart
+                                        {% if cart_count and cart_count > 0 %}
+                                            <span class="badge bg-primary">{{ cart_count }}</span>
+                                        {% endif %}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'chat:conversations' %}">
+                                        <i class="bi bi-chat me-2"></i> Messages
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            <!-- Retailer Links -->
+                            {% if user.role == 'retailer' %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li class="dropdown-header">Shop Management</li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'shops:retailer_dashboard' %}">
+                                        <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'shops:my_shop' %}">
+                                        <i class="bi bi-shop me-2"></i> My Shop
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'products:my_products' %}">
+                                        <i class="bi bi-box me-2"></i> My Products
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'orders:retailer_orders' %}">
+                                        <i class="bi bi-receipt me-2"></i> Orders
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'chat:conversations' %}">
+                                        <i class="bi bi-chat me-2"></i> Messages
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            <!-- Admin Links -->
+                            {% if user.is_superuser %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li class="dropdown-header">Administration</li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'users:admin_dashboard' %}">
+                                        <i class="bi bi-shield-check me-2"></i> Admin Dashboard
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'admin:index' %}">
+                                        <i class="bi bi-gear me-2"></i> Django Admin
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            <!-- Logout -->
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                                    <i class="bi bi-box-arrow-right me-2"></i> Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <!-- Login/Register Links -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'users:register' %}">
+                            <i class="bi bi-person-plus"></i> Register
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Search Suggestions Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const suggestionsBox = document.getElementById('searchSuggestions');
+    let searchTimeout;
+    
+    if (searchInput && suggestionsBox) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            
+            clearTimeout(searchTimeout);
+            
+            if (query.length < 2) {
+                suggestionsBox.style.display = 'none';
+                return;
+            }
+            
+            searchTimeout = setTimeout(function() {
+                fetch('/ai/search/suggestions/?q=' + encodeURIComponent(query))
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.suggestions && data.suggestions.length > 0) {
+                            suggestionsBox.innerHTML = data.suggestions
+                                .map(s => '<a href="/products/?search=' + encodeURIComponent(s) + '" class="d-block px-3 py-2 text-decoration-none text-dark border-bottom suggestion-item" style="cursor: pointer;"><i class="bi bi-search me-2 text-muted"></i>' + s + '</a>')
+                                .join('');
+                            suggestionsBox.style.display = 'block';
+                        } else {
+                            suggestionsBox.style.display = 'none';
+                        }
+                    })
+                    .catch(function(error) {
+                        console.log('Search suggestion error:', error);
+                        suggestionsBox.style.display = 'none';
+                    });
+            }, 300);
+        });
+        
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                suggestionsBox.style.display = 'none';
+            }
+        });
+        
+        // Hide suggestions on escape key
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                suggestionsBox.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
+
+<style>
+    .suggestion-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .dropdown-menu {
+        min-width: 220px;
+    }
+    
+    .dropdown-header {
+        font-size: 0.85rem;
+    }
+    
+    @media (max-width: 991.98px) {
+        .dropdown-menu {
+            border: none;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .dropdown-menu .dropdown-item {
+            color: white;
+        }
+        
+        .dropdown-menu .dropdown-item:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .dropdown-menu .dropdown-divider {
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .dropdown-menu .dropdown-header {
+            color: rgba(255, 255, 255, 0.7);
+        }
+    }
+</style>
